@@ -38,13 +38,13 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.EC2_HOST_LOGIN }} >> ~/.ssh/known_hosts
 
       # 6. SSH to EC2 and deploy
       - name: SSH to EC2 and deploy
         run: |
           echo "Iniciando despliegue en EC2..."
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST_LOGIN }} << 'EOF'
             # Detén y elimina cualquier contenedor anterior
             docker stop login-microservice || true
             docker rm login-microservice || true

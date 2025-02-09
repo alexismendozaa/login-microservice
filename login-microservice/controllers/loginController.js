@@ -3,15 +3,17 @@ const User = require('../models/User');
 
 async function loginUser(req, res) {
     const { username, password } = req.body;
+
     // Verificar si el usuario existe
     const user = await User.findOne({ where: { username } });
 
     if (!user || user.password !== password) {
         return res.status(400).json({ message: 'Invalid credentials' });
     }
-    // Llamada a otros microservicios (si es necesario)
+
+    // Llamada al microservicio de password-reset
     try {
-        const response = await axios.post('http://password-reset-microservice-url/password-reset', {
+        const response = await axios.post('http://54.234.224.71/password-reset', {
             email: user.email
         });
         console.log('Password reset requested:', response.data);

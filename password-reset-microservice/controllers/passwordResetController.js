@@ -1,27 +1,66 @@
 const axios = require('axios');
+const crypto = require('crypto');
 const User = require('../models/User');
+const nodemailer = require('nodemailer');
 
-async function loginUser(req, res) {
-    const { username, password } = req.body;
+async function initiatePasswordReset(req, res) {
+    const { email } = req.body;
 
-    // Verificar si el usuario existe
-    const user = await User.findOne({ where: { username } });
-
-    if (!user || user.password !== password) {
-        return res.status(400).json({ message: 'Invalid credentials' });
+    // Buscar al usuario por su correo electrónico
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
     }
 
-    // Llamada al microservicio de password-reset
-    try {
-        const response = await axios.post('http://54.234.224.71/password-reset', {
-            email: user.email
-        });
-        console.log('Password reset requested:', response.data);
-    } catch (error) {
-        console.error('Error contacting password-reset microservice:', error);
-    }
+    // Generar un token de restablecimiento
+    const token = crypto.randomBytes(32).toString('hex');
+    user.passwordResetToken = token;
+    user.passwordResetTokenExpiry = Date.now() + 3600000; // Token válido por 1 hora
+    await user.save();
 
-    return res.status(200).json({ message: 'Login successful' });
+    // Enviar el correo de restablecimiento
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+        }
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: 'Password Reset',
+        text: `Click the following link to reset your password: \n\nhttp://your-frontend-url/reset-password/${token}`
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return res.status(500).json({ message: 'Error sending email' });
+        }
+        res.status(200).json({ message: 'Password reset email sent' });
+    });
 }
 
-module.exports = { loginUser };
+async function resetPassword(req, res) {
+    const { token, newPassword } = req.body;
+
+    // Buscar al usuario por el token de restablecimiento
+    const user = await User.findOne({
+        where: { passwordResetToken: token, passwordResetTokenExpiry: { [Op.gt]: Date.now() } }
+    });
+
+    if (!user) {
+        return res.status(400).json({ message: 'Invalid or expired reset token' });
+    }
+
+    // Actualizar la contraseña
+    user.password = newPassword;
+    user.passwordResetToken = null;  // Limpiar el token de restablecimiento
+    user.passwordResetTokenExpiry = null;
+    await user.save();
+
+    res.status(200).json({ message: 'Password reset successful' });
+}
+
+module.exports = { initiatePasswordReset, resetPassword };

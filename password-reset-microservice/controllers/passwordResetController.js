@@ -1,24 +1,24 @@
+const axios = require('axios');
 const crypto = require('crypto');
 const User = require('../models/User');
 const nodemailer = require('nodemailer');
 
-// Function to generate reset token and send email
 async function initiatePasswordReset(req, res) {
     const { email } = req.body;
 
-    // Find user by email
+    // Buscar al usuario por su correo electrónico
     const user = await User.findOne({ where: { email } });
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
     }
 
-    // Generate a reset token
+    // Generar un token de restablecimiento
     const token = crypto.randomBytes(32).toString('hex');
     user.passwordResetToken = token;
-    user.passwordResetTokenExpiry = Date.now() + 3600000; // Token valid for 1 hour
+    user.passwordResetTokenExpiry = Date.now() + 3600000; // Token válido por 1 hora
     await user.save();
 
-    // Send reset email
+    // Enviar el correo de restablecimiento
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -42,11 +42,10 @@ async function initiatePasswordReset(req, res) {
     });
 }
 
-// Function to reset password
 async function resetPassword(req, res) {
     const { token, newPassword } = req.body;
 
-    // Find user by reset token
+    // Buscar al usuario por el token de restablecimiento
     const user = await User.findOne({
         where: { passwordResetToken: token, passwordResetTokenExpiry: { [Op.gt]: Date.now() } }
     });
@@ -55,9 +54,9 @@ async function resetPassword(req, res) {
         return res.status(400).json({ message: 'Invalid or expired reset token' });
     }
 
-    // Update the password
+    // Actualizar la contraseña
     user.password = newPassword;
-    user.passwordResetToken = null;  // Clear the reset token
+    user.passwordResetToken = null;  // Limpiar el token de restablecimiento
     user.passwordResetTokenExpiry = null;
     await user.save();
 

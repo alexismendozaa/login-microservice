@@ -13,12 +13,14 @@ async function loginUser(req, res) {
 
     // Llamada al microservicio de password-reset
     try {
-        const response = await axios.post('http://54.234.224.71/password-reset', {
+        const resetServiceUrl = process.env.EC2_HOST_RESET; // Usando la IP del servicio de reset
+        const response = await axios.post(`${resetServiceUrl}/password-reset`, {
             email: user.email
         });
         console.log('Password reset requested:', response.data);
     } catch (error) {
         console.error('Error contacting password-reset microservice:', error);
+        return res.status(500).json({ message: 'Error contacting password-reset service' });
     }
 
     return res.status(200).json({ message: 'Login successful' });

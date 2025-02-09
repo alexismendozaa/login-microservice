@@ -49,6 +49,9 @@ jobs:
           key: /tmp/private_key.pem
           port: 22
           script: |
+            # Agregar información para depurar
+            echo "Verificando conexión SSH con EC2..."
+
             # Detén y elimina cualquier contenedor anterior
             docker stop login-microservice || true
             docker rm login-microservice || true
@@ -58,5 +61,6 @@ jobs:
 
             # Ejecuta el contenedor (sin docker-compose)
             docker run -d -p 3000:3000 --name login-microservice alexismendozaa/login-microservice:latest
-        debug: true  # Habilita la depuración para obtener más detalles del error
 
+            # Confirmar ejecución
+            echo "Despliegue completo. El contenedor está en ejecución."

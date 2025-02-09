@@ -32,30 +32,19 @@ jobs:
           docker build -t alexismendozaa/login-microservice .
           docker push alexismendozaa/login-microservice:latest
 
-      # 5. Copy RSA private key to the runner
-      - name: Copy RSA private key to the runner
-        run: echo "${{ secrets.EC2_PRIVATE_KEY }}" > /tmp/private_key.pem
+      # 5. Set up SSH key for deployment
+      - name: Set up SSH key for deployment
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      # 6. Verify the private key (added debugging step)
-      - name: Verify the private key content
-        run: cat /tmp/private_key.pem
-
-      # 7. Set permissions for the private key
-      - name: Set permissions for the private key
-        run: chmod 600 /tmp/private_key.pem
-
-      # 8. SSH to EC2 and deploy
+      # 6. SSH to EC2 and deploy
       - name: SSH to EC2 and deploy
-        uses: appleboy/ssh-action@v0.1.0
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu  # Cambié el usuario a "ubuntu"
-          key: /tmp/private_key.pem
-          port: 22
-          script: |
-            # Agregar información para depurar
-            echo "Verificando conexión SSH con EC2..."
-
+        run: |
+          echo "Iniciando despliegue en EC2..."
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             # Detén y elimina cualquier contenedor anterior
             docker stop login-microservice || true
             docker rm login-microservice || true
@@ -66,5 +55,5 @@ jobs:
             # Ejecuta el contenedor (sin docker-compose)
             docker run -d -p 3000:3000 --name login-microservice alexismendozaa/login-microservice:latest
 
-            # Confirmar ejecución
             echo "Despliegue completo. El contenedor está en ejecución."
+          EOF

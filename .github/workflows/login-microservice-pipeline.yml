@@ -1,0 +1,52 @@
+name: CI/CD Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-login:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image for login-microservice
+        run: |
+          docker build -t alexismendozaa/login-microservice .
+          docker push alexismendozaa/login-microservice:latest
+
+      - name: Copy RSA private key to the runner
+        run: echo "${{ secrets.EC2_PRIVATE_KEY }}" > /tmp/private_key.pem
+
+      - name: Set permissions for the private key
+        run: chmod 600 /tmp/private_key.pem
+
+      - name: SSH to EC2 and deploy
+        uses: appleboy/ssh-action@v0.1.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: login-microservice  # Si tu instancia usa otro nombre de usuario, cámbialo
+          key: /tmp/private_key.pem
+          port: 22
+          script: |
+            # Detén y elimina cualquier contenedor anterior
+            docker stop login-microservice || true
+            docker rm login-microservice || true
+
+            # Pull del nuevo contenedor desde DockerHub
+            docker pull alexismendozaa/login-microservice:latest
+
+            # Ejecuta el contenedor (sin docker-compose)
+            docker run -d -p 3000:3000 --name login-microservice alexismendozaa/login-microservice:latest

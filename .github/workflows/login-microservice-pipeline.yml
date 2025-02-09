@@ -24,6 +24,7 @@ jobs:
 
       - name: Build and push Docker image for login-microservice
         run: |
+          cd login-microservice  # Cambiar al directorio donde está el Dockerfile
           docker build -t alexismendozaa/login-microservice .
           docker push alexismendozaa/login-microservice:latest
 
@@ -37,7 +38,7 @@ jobs:
         uses: appleboy/ssh-action@v0.1.0
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: login-microservice  # Si tu instancia usa otro nombre de usuario, cámbialo
+          username: ubuntu  # Cambié el usuario a "ubuntu"
           key: /tmp/private_key.pem
           port: 22
           script: |

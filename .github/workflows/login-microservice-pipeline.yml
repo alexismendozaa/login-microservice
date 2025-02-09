@@ -36,11 +36,15 @@ jobs:
       - name: Copy RSA private key to the runner
         run: echo "${{ secrets.EC2_PRIVATE_KEY }}" > /tmp/private_key.pem
 
-      # 6. Set permissions for the private key
+      # 6. Verify the private key (added debugging step)
+      - name: Verify the private key content
+        run: cat /tmp/private_key.pem
+
+      # 7. Set permissions for the private key
       - name: Set permissions for the private key
         run: chmod 600 /tmp/private_key.pem
 
-      # 7. SSH to EC2 and deploy
+      # 8. SSH to EC2 and deploy
       - name: SSH to EC2 and deploy
         uses: appleboy/ssh-action@v0.1.0
         with:

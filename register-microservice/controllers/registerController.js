@@ -6,7 +6,8 @@ async function registerUser(req, res) {
 
     // Verificar si el usuario ya existe en el microservicio de login
     try {
-        const loginResponse = await axios.post('http://34.239.110.35/login', { username, password });
+        const loginServiceUrl = process.env.EC2_HOST_LOGIN; // Usando la IP del servicio de login
+        const loginResponse = await axios.post(`${loginServiceUrl}/login`, { username, password });
         if (loginResponse.status === 200) {
             return res.status(400).json({ message: 'User already exists' });
         }

@@ -2,7 +2,7 @@ const User = require('../models/User');
 const axiosService = require('../services/axiosService');  // Importamos el servicio de Axios
 
 async function registerUser(req, res) {
-    const { username, password } = req.body;
+    const { username, password, email } = req.body;  // Ahora también recibimos el correo
 
     // Verificar si el usuario ya está registrado en el microservicio de login
     try {
@@ -15,16 +15,28 @@ async function registerUser(req, res) {
         return res.status(500).json({ message: 'Error communicating with login service' });
     }
 
-    // Si el usuario no existe, lo registramos en el microservicio de registro
-    const existingUser = await User.findOne({ where: { username } });
-    if (existingUser) {
-        return res.status(400).json({ message: 'User already exists' });
+    // Verificar si el correo ya está registrado
+    const existingUserByEmail = await User.findOne({ where: { email } });
+    if (existingUserByEmail) {
+        return res.status(400).json({ message: 'Email already in use' });
     }
 
-    // Crear un nuevo usuario
-    const newUser = await User.create({ username, password });
+    // Verificar si el nombre de usuario ya está registrado
+    const existingUserByUsername = await User.findOne({ where: { username } });
+    if (existingUserByUsername) {
+        return res.status(400).json({ message: 'Username already exists' });
+    }
 
-    return res.status(201).json({ message: 'User created successfully', user: newUser });
+    // Crear un nuevo usuario con el correo, nombre de usuario y contraseña
+    const newUser = await User.create({ username, password, email });
+
+    return res.status(201).json({
+        message: 'User created successfully',
+        user: {
+            username: newUser.username,
+            email: newUser.email
+        }
+    });
 }
 
 module.exports = { registerUser };

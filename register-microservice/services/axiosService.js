@@ -12,10 +12,20 @@ async function checkUserLogin(username) {
     const response = await axiosInstance.post('/login', { username });
     return response.data;  // Retorna los datos del microservicio de login
   } catch (error) {
-    console.error('Error al verificar el login:', error.message);
+    if (error.response) {
+      // La solicitud fue hecha y el servidor respondió con un código de error
+      console.error('Error en la respuesta del servidor:', error.response.data);
+    } else if (error.request) {
+      // La solicitud fue hecha pero no hubo respuesta
+      console.error('No hubo respuesta del servidor:', error.request);
+    } else {
+      // Algo ocurrió al configurar la solicitud
+      console.error('Error al configurar la solicitud:', error.message);
+    }
     throw error;
   }
 }
+
 
 module.exports = {
   checkUserLogin,

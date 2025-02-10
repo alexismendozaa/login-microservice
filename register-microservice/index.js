@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
+app.use(express.json());
 const registerRoutes = require('./routes/registerRoutes');
 require('dotenv').config();  // Load environment variables from .env file
 const sequelize = require('./db');
@@ -13,7 +13,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Register routes
-app.use('/', registerRoutes);
+app.use('/api', registerRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 3001;

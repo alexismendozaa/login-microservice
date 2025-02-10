@@ -4,16 +4,21 @@ const { registerUser } = require('../controllers/registerController');
 const { User } = require('../models/User');  // Asegúrate de importar el modelo User
 
 // Ruta para registrar un nuevo usuario
-router.post('/register', registerUser);
+router.post('/register', (req, res, next) => {
+    console.log('POST request received at /register');
+    next();  // Para pasar el control al siguiente middleware o controlador
+}, registerUser);
 
 // Ruta para verificar si el nombre de usuario ya está registrado
 router.post('/users/check-username', async (req, res) => {
   const { username } = req.body;
   try {
+    console.log('Checking if username already exists:', username);
     // Verificar si el nombre de usuario ya existe en la base de datos
     const existingUser = await User.findOne({ where: { username } });
 
     if (existingUser) {
+      console.log('Username already exists:', username);
       return res.status(400).json({ message: 'Usuario ya registrado' });
     }
 

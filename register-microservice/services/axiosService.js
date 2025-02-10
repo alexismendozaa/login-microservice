@@ -26,7 +26,19 @@ async function checkUserLogin(username) {
   }
 }
 
+async function checkUserRegistration(username) {
+  try {
+    // Cambiar la ruta de /register a /users/check-username
+    const response = await axiosInstance.post('/users/check-username', { username });
+    return response.data;
+  } catch (error) {
+    console.error('Error al verificar el registro:', error.message);
+    throw error;  // Lanza el error para que sea manejado en el controlador
+  }
+}
+
 
 module.exports = {
   checkUserLogin,
+  checkUserRegistration,
 };

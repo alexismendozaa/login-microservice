@@ -52,8 +52,11 @@ jobs:
             # Pull del nuevo contenedor desde DockerHub
             docker pull alexismendozaa/login-microservice:latest
 
-            # Ejecuta el contenedor (sin docker-compose)
-            docker run -d -p 3000:3000 --name login-microservice alexismendozaa/login-microservice:latest
+            # Ejecuta el contenedor (en el puerto 3000)
+            docker run -d -p 3000:3000 --name login-microservice \
+              -e EC2_HOST_REGISTER=${{ secrets.EC2_HOST_REGISTER }} \
+              -e EC2_HOST_PASSWORD_RESET=${{ secrets.EC2_HOST_PASSWORD_RESET }} \
+              alexismendozaa/login-microservice:latest
 
             echo "Despliegue completo. El contenedor está en ejecución."
           EOF

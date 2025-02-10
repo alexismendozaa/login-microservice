@@ -1,24 +1,36 @@
 const crypto = require('crypto');
 const User = require('../models/User');
 const nodemailer = require('nodemailer');
+const axiosService = require('../services/axiosService');  // Importamos el servicio de Axios
 
-// Function to generate reset token and send email
+// Función para generar token de restablecimiento y enviar el email
 async function initiatePasswordReset(req, res) {
     const { email } = req.body;
 
-    // Find user by email
+    // Verificar si el usuario existe en el microservicio de login
+    try {
+        const userExists = await axiosService.checkUserLogin(email); // Llamamos al servicio de login para verificar
+
+        if (!userExists) {
+            return res.status(404).json({ message: 'User not found in login service' });
+        }
+    } catch (error) {
+        return res.status(500).json({ message: 'Error communicating with login service' });
+    }
+
+    // Buscar usuario por email
     const user = await User.findOne({ where: { email } });
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
     }
 
-    // Generate a reset token
+    // Generar el token de restablecimiento
     const token = crypto.randomBytes(32).toString('hex');
     user.passwordResetToken = token;
-    user.passwordResetTokenExpiry = Date.now() + 3600000; // Token valid for 1 hour
+    user.passwordResetTokenExpiry = Date.now() + 3600000; // Token válido por 1 hora
     await user.save();
 
-    // Send reset email
+    // Enviar el email de restablecimiento
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -42,11 +54,11 @@ async function initiatePasswordReset(req, res) {
     });
 }
 
-// Function to reset password
+// Función para restablecer la contraseña
 async function resetPassword(req, res) {
     const { token, newPassword } = req.body;
 
-    // Find user by reset token
+    // Buscar usuario por token de restablecimiento
     const user = await User.findOne({
         where: { passwordResetToken: token, passwordResetTokenExpiry: { [Op.gt]: Date.now() } }
     });
@@ -55,9 +67,9 @@ async function resetPassword(req, res) {
         return res.status(400).json({ message: 'Invalid or expired reset token' });
     }
 
-    // Update the password
+    // Actualizar la contraseña
     user.password = newPassword;
-    user.passwordResetToken = null;  // Clear the reset token
+    user.passwordResetToken = null;  // Limpiar el token de restablecimiento
     user.passwordResetTokenExpiry = null;
     await user.save();
 

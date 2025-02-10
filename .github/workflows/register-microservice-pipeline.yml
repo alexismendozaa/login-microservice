@@ -53,7 +53,10 @@ jobs:
             docker pull alexismendozaa/register-microservice:latest
 
             # Ejecuta el contenedor (en el puerto 3001)
-            docker run -d -p 3001:3001 --name register-microservice alexismendozaa/register-microservice:latest
+            docker run -d -p 3001:3001 --name register-microservice \
+              -e EC2_HOST_LOGIN=${{ secrets.EC2_HOST_LOGIN }} \
+              -e EC2_HOST_PASSWORD_RESET=${{ secrets.EC2_HOST_PASSWORD_RESET }} \
+              alexismendozaa/register-microservice:latest
 
             echo "Despliegue completo. El contenedor está en ejecución."
           EOF

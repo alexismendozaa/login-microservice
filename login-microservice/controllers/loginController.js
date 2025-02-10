@@ -1,5 +1,4 @@
 const User = require('../models/User');
-const bcrypt = require('bcryptjs');
 
 async function loginUser(req, res) {
   const { username, password } = req.body;
@@ -13,9 +12,7 @@ async function loginUser(req, res) {
     }
 
     // Verificar si la contraseña proporcionada es correcta
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
+    if (password !== user.password) {
       return res.status(400).json({ message: 'Credenciales incorrectas' });
     }
 

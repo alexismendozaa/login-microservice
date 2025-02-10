@@ -13,7 +13,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Register routes
-app.use('/api', registerRoutes);
+app.use('/', registerRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 3001;

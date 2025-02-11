@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { Op } = require('sequelize'); // Importa Op aquí
 const User = require('../models/User');
 const nodemailer = require('nodemailer');
 

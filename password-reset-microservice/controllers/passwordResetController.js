@@ -1,22 +1,10 @@
 const crypto = require('crypto');
 const User = require('../models/User');
 const nodemailer = require('nodemailer');
-const axiosService = require('../services/axiosService');  // Importamos el servicio de Axios
 
 // Función para generar token de restablecimiento y enviar el email
 async function initiatePasswordReset(req, res) {
     const { email } = req.body;
-
-    // Verificar si el usuario existe en el microservicio de login
-    try {
-        const userExists = await axiosService.checkUserLogin(email); // Llamamos al servicio de login para verificar
-
-        if (!userExists) {
-            return res.status(404).json({ message: 'User not found in login service' });
-        }
-    } catch (error) {
-        return res.status(500).json({ message: 'Error communicating with login service' });
-    }
 
     // Buscar usuario por email
     const user = await User.findOne({ where: { email } });

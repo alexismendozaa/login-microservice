@@ -1,11 +1,11 @@
 const User = require('../models/User');
 
 async function loginUser(req, res) {
-  const { username, password } = req.body;
+  const { email, password } = req.body;  // Cambiado 'username' por 'email'
 
   try {
-    // Verificar si el usuario existe en la base de datos RDS
-    const user = await User.findOne({ where: { username } });
+    // Verificar si el usuario existe en la base de datos RDS por email
+    const user = await User.findOne({ where: { email } });  // Cambiado 'username' por 'email'
 
     if (!user) {
       return res.status(400).json({ message: 'Usuario no encontrado' });

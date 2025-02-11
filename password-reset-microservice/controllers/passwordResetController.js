@@ -31,7 +31,7 @@ async function initiatePasswordReset(req, res) {
         from: process.env.EMAIL_USER,
         to: user.email,
         subject: 'Password Reset',
-        text: `Click the following link to reset your password: \n\nhttp://your-frontend-url/reset-password/${token}`
+        text: `Click the following link to reset your password: \n\n${token}`
     };
 
     transporter.sendMail(mailOptions, (error, info) => {

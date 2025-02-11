@@ -15,6 +15,13 @@ app.use(bodyParser.json());
 // Password Reset routes
 app.use('/api', passwordResetRoutes);
 
+// Synchronize the database
+sequelize.sync().then(() => {
+    console.log('Database synchronized');
+}).catch(err => {
+    console.error('Error syncing database:', err);
+});
+
 // Start the server
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
